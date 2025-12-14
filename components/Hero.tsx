@@ -83,7 +83,17 @@ export const Hero: React.FC<HeroProps> = ({ story }) => {
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
-        <span key={`chap-${story.id}`} className="text-orange-400 font-sans tracking-[0.3em] text-sm md:text-base uppercase mb-4 animate-fade-in-up">{story.chapterRef}</span>
+        
+        <div className="flex flex-col items-center gap-2 mb-4 animate-fade-in-up">
+            <span key={`chap-${story.id}`} className="text-orange-400 font-sans tracking-[0.3em] text-sm md:text-base uppercase">{story.chapterRef}</span>
+            {story.focus && (
+                <div className="flex items-center gap-2">
+                     <span className="text-white/30 text-xs">•</span>
+                     <span className="text-stone-300 font-serif italic text-sm">Focus: {story.focus}</span>
+                </div>
+            )}
+        </div>
+
         <h1 key={`title-${story.id}`} className="text-5xl md:text-7xl lg:text-8xl font-display text-white mb-6 drop-shadow-lg animate-fade-in-up">
           {story.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-200">{story.titleHighlight}</span>
         </h1>

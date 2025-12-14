@@ -34,6 +34,7 @@ export interface StoryData {
   text: string;
   backgroundImage: string;
   aiContext: string;
+  focus?: string;           // Optional focus/protagonist
 }
 
 export interface QuizQuestion {

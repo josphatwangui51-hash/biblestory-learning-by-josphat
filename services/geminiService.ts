@@ -133,10 +133,16 @@ export const generateStoryQuiz = async (storyContext: string): Promise<QuizQuest
       }
     });
 
-    if (response.text) {
-      return JSON.parse(response.text) as QuizQuestion[];
+    let text = response.text || "[]";
+    // Remove markdown code blocks if present to ensure JSON.parse succeeds
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+    try {
+      return JSON.parse(text) as QuizQuestion[];
+    } catch (e) {
+      console.error("Failed to parse quiz JSON:", text);
+      return [];
     }
-    return [];
   } catch (error) {
     console.error("Error generating quiz:", error);
     return [];

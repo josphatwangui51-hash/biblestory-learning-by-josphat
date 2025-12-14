@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { generateStoryQuiz } from '../services/geminiService';
 import { QuizQuestion, StoryData } from '../types';
-import { CheckCircle, XCircle, BrainCircuit, RefreshCw, Trophy, ChevronRight } from 'lucide-react';
+import { CheckCircle, XCircle, BrainCircuit, RefreshCw, Trophy, ChevronRight, AlertCircle } from 'lucide-react';
 
 interface BibleQuizProps {
   story: StoryData;
 }
 
 export const BibleQuiz: React.FC<BibleQuizProps> = ({ story }) => {
-  const [status, setStatus] = useState<'idle' | 'loading' | 'active' | 'finished'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'active' | 'finished' | 'error'>('idle');
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
@@ -29,8 +29,7 @@ export const BibleQuiz: React.FC<BibleQuizProps> = ({ story }) => {
       setUserAnswers(new Array(quizData.length).fill(-1));
       setStatus('active');
     } else {
-      setStatus('idle');
-      // Ideally handle error UI here
+      setStatus('error');
     }
   };
 
@@ -56,12 +55,26 @@ export const BibleQuiz: React.FC<BibleQuizProps> = ({ story }) => {
     return score;
   };
 
-  if (status === 'idle') {
+  const getFeedbackMessage = (percentage: number) => {
+    if (percentage === 100) return "Perfect! A true scholar of the Word.";
+    if (percentage >= 80) return "Excellent understanding of the scripture!";
+    if (percentage >= 60) return "Good effort! You've grasped the main points.";
+    return "Keep studying! The depths of scripture are endless.";
+  };
+
+  if (status === 'idle' || status === 'error') {
     return (
       <section className="py-16 px-4 bg-stone-100 border-t border-stone-200">
         <div className="max-w-2xl mx-auto text-center">
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
-            <BrainCircuit className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+            {status === 'error' ? (
+                <div className="mb-4 flex flex-col items-center">
+                    <AlertCircle className="w-12 h-12 text-red-500 mb-2" />
+                    <p className="text-red-600 font-sans text-sm">Could not generate quiz. Please try again.</p>
+                </div>
+            ) : (
+                <BrainCircuit className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+            )}
             <h2 className="text-2xl font-display text-stone-800 mb-2">Test Your Knowledge</h2>
             <p className="text-stone-600 mb-6 font-serif">
               Take a quick AI-generated quiz to see how well you understand the story of {story.titlePrefix} {story.titleHighlight}.
@@ -70,7 +83,7 @@ export const BibleQuiz: React.FC<BibleQuizProps> = ({ story }) => {
               onClick={startQuiz}
               className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-full font-bold tracking-wide transition-all hover:shadow-lg transform hover:-translate-y-1"
             >
-              Start Quiz
+              {status === 'error' ? 'Try Again' : 'Start Quiz'}
             </button>
           </div>
         </div>
@@ -167,7 +180,8 @@ export const BibleQuiz: React.FC<BibleQuizProps> = ({ story }) => {
             <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4 drop-shadow-lg" />
             <h2 className="text-3xl font-display mb-2">Quiz Complete!</h2>
             <div className="text-6xl font-bold text-orange-400 mb-2">{percentage}%</div>
-            <p className="text-stone-400">You scored {score} out of {questions.length}</p>
+            <p className="text-stone-300 text-lg mb-1">{getFeedbackMessage(percentage)}</p>
+            <p className="text-stone-500 text-sm">You scored {score} out of {questions.length}</p>
           </div>
 
           <div className="p-8 bg-stone-50">
@@ -182,7 +196,7 @@ export const BibleQuiz: React.FC<BibleQuizProps> = ({ story }) => {
                       ) : (
                         <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-1" />
                       )}
-                      <div>
+                      <div className="w-full">
                         <h4 className="font-bold text-stone-800 mb-1">{q.question}</h4>
                         <p className={`text-sm mb-2 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                           Your answer: {q.options[userAnswers[idx]]}
